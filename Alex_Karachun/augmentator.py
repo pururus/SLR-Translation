@@ -3,6 +3,7 @@ from copy import deepcopy
 from uuid import uuid4
 import pandas as pd
 import numpy as np
+import random
 import math
 import cv2
 
@@ -10,20 +11,29 @@ import cv2
 
 '''
 тз
-1. done - mirroring - зеркалить
-2. fuck - крутить
-3. done - zooming - приближать и возвращать к исходному размеру
-4. done - (надо просто при сохранении менять bitrate) - качество видео
-5. done - cropping - обрезать
-6. дрожь
-7. done - (при сохранении добавлять ffmpeg_params=['-vf', f'noise=alls={n}:allf=t+u'], где n in [0, 100])шумы
-8. цветофильтры
-9. done - respeeding - менять скорость
-10. изменение яркости и контрастности
-11. Гауссово размытие
+done - mirroring - зеркалить
+done - zooming - приближать и возвращать к исходному размеру
+done - (надо просто при сохранении менять bitrate) - качество видео
+done - cropping - обрезать
+done - (при сохранении добавлять ffmpeg_params=['-vf', f'noise=alls={n}:allf=t+u'], где n in [0, 100])шумы
+done - respeeding - менять скорость
+done - rebritning, x in [0.2, 1.7] - изменение яркости и контрастности
 
-
+fuck - крутить
+fuck - дрожь
+fuck - цветофильтры
+fuck - Гауссово размытие
 '''
+
+
+
+def rebritning(clip: mp.VideoFileClip, x: float) -> mp.VideoFileClip:
+    respeeder = mp.video.fx.MultiplyColor(factor = x)
+    # respeeder.factor = x
+    clip = respeeder.apply(clip)
+    return clip
+
+
 
 
 # def bluring(clip: mp.VideoFileClip, blur_strength: float) -> mp.VideoFileClip:
@@ -39,20 +49,6 @@ import cv2
 #     return clip
 
 
-# clip = mp.VideoFileClip('main/to_augment/2.mp4')
-# processed_clip = bluring(clip, 2)
-# print('i' * 100)
-# print(clip.size)
-# print(processed_clip.size)
-# processed_clip.write_videofile('main/augmented/done.mp4')
-
-
-
-clip = mp.VideoFileClip('main/to_augment/2.mp4')
-clip.write_videofile('main/augmented/done.mp4', )
-
-    
-
 
 
 def respeeding(clip: mp.VideoFileClip, x: float) -> mp.VideoFileClip:
@@ -61,6 +57,13 @@ def respeeding(clip: mp.VideoFileClip, x: float) -> mp.VideoFileClip:
     clip = respeeder.apply(clip)
     return clip
 
+
+clip = mp.VideoFileClip('Alex_Karachun/to_augment/2.mp4')
+processed_clip = respeeding(clip, x=0.8) 
+print('i' * 100)
+print(clip.size)
+print(processed_clip.size)
+processed_clip.write_videofile('Alex_Karachun/augmented/done.mp4')
 
 
 
@@ -75,6 +78,7 @@ def cropping(clip: mp.VideoFileClip, left_down: list[int, int], right_upper: lis
     clip = resizing(clip, original_size)
     
     return clip
+
 
 
 
@@ -102,6 +106,10 @@ def zooming(clip: mp.VideoFileClip, k=1.5) -> mp.VideoFileClip:
     return clip
 
 
+
+
+# clip = mp.VideoFileClip('Alex_Karachun/to_augment/2.mp4')
+# clip.write_videofile('Alex_Karachun/augmented/done.mp4', bitrate='700k')  # 100k - 500k
 
 
 # def rotating(clip: mp.VideoFileClip, angle=10) -> mp.VideoFileClip:
@@ -175,6 +183,33 @@ def process_video(video_path: str, result_dir: str, multiplyer: int) -> list[str
     video_names = [str(uuid4()) for _ in range(multiplyer)]
     for i, clip in enumerate(clips):
         # кручу верчу запутать хочу - надо попортить видео
+        '''
+        mirroring - will_mirror: bool
+        zooming - k: float in [1, 1.3]
+        (надо просто при сохранении менять bitrate in ['100k', '200k', '300k', '400k', '500k', '600k', '700k']) - качество видео
+        cropping - left_down = [x_1 in [0; 10%], y_1 in [0; 10%]], right_upper = [x_2 in [-10%; 100%], y_2 in [-10%; 100%]]
+        noize: (при сохранении добавлять ffmpeg_params=['-vf', f'noise=alls={n}:allf=t+u'], где n in [0, 100]) - bool
+        respeeding x in [0.8, 1.5]
+        rebritning, x in [0.2, 1.7] - изменение яркости и контрастности
+        '''
+        will_mirror = random.choice([True, False])
+        k_for_zooming = random.uniform(1, 1.3)
+        
+        bitrate = random.choice(['100k', '200k', '300k', '400k', '500k', '600k', '700k'])
+        
+        cropping_left_down = [int(random.uniform(0, clip.size[0] * 0.1)), int(random.uniform(0, clip.size[1] * 0.1))]
+        cropping_right_upper = [clip.size[0] - int(random.uniform(0, clip.size[0] * 0.1)), clip.size[1] - int(random.uniform(0, clip.size[1] * 0.1))]
+        
+        will_noize = random.choice([True, False])
+        
+        new_speed = random.uniform(0.8, 1.5)
+        
+        rebritning = random.uniform(0.2, 1.7)
+        
+        
+        
+        
+        
         
         
         clip.write_videofile(result_dir + video_names[i] + '.mp4')

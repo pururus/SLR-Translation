@@ -6,7 +6,9 @@ import numpy as np
 import random
 import math
 import cv2
+import logging
 
+logging.getLogger("moviepy").setLevel(logging.CRITICAL)
 
 
 '''
@@ -58,13 +60,16 @@ def respeeding(clip: mp.VideoFileClip, x: float) -> mp.VideoFileClip:
     return clip
 
 
-clip = mp.VideoFileClip('Alex_Karachun/to_augment/2.mp4')
-processed_clip = respeeding(clip, x=0.8) 
-print('i' * 100)
-print(clip.size)
-print(processed_clip.size)
-processed_clip.write_videofile('Alex_Karachun/augmented/done.mp4')
+# clip = mp.VideoFileClip('Alex_Karachun/to_augment/2.mp4')
+# processed_clip = respeeding(clip, x=0.8) 
+# print('i' * 100)
+# print(clip.size)
+# print(processed_clip.size)
+# processed_clip.write_videofile('Alex_Karachun/augmented/done.mp4')
 
+
+# clip = mp.VideoFileClip('Alex_Karachun/to_augment/1.mp4')
+# clip.write_videofile('Alex_Karachun/augmented/done.mp4', bitrate='500k')
 
 
 def cropping(clip: mp.VideoFileClip, left_down: list[int, int], right_upper: list[int, int]) -> mp.VideoFileClip:
@@ -186,33 +191,50 @@ def process_video(video_path: str, result_dir: str, multiplyer: int) -> list[str
         '''
         mirroring - will_mirror: bool
         zooming - k: float in [1, 1.3]
-        (надо просто при сохранении менять bitrate in ['100k', '200k', '300k', '400k', '500k', '600k', '700k']) - качество видео
+        (надо просто при сохранении менять bitrate in ['300k', ...]) - качество видео
         cropping - left_down = [x_1 in [0; 10%], y_1 in [0; 10%]], right_upper = [x_2 in [-10%; 100%], y_2 in [-10%; 100%]]
         noize: (при сохранении добавлять ffmpeg_params=['-vf', f'noise=alls={n}:allf=t+u'], где n in [0, 100]) - bool
         respeeding x in [0.8, 1.5]
         rebritning, x in [0.2, 1.7] - изменение яркости и контрастности
         '''
         will_mirror = random.choice([True, False])
+        
         k_for_zooming = random.uniform(1, 1.3)
         
-        bitrate = random.choice(['100k', '200k', '300k', '400k', '500k', '600k', '700k'])
         
         cropping_left_down = [int(random.uniform(0, clip.size[0] * 0.1)), int(random.uniform(0, clip.size[1] * 0.1))]
         cropping_right_upper = [clip.size[0] - int(random.uniform(0, clip.size[0] * 0.1)), clip.size[1] - int(random.uniform(0, clip.size[1] * 0.1))]
         
-        will_noize = random.choice([True, False])
         
         new_speed = random.uniform(0.8, 1.5)
         
-        rebritning = random.uniform(0.2, 1.7)
+        new_britness = random.uniform(0.2, 1.7)
+        
+        # bitrate = random.choice(['100k', '200k', '300k', '400k', '500k', '600k', '700k'])
+        # bitrate = random.choice(['300k', '400k', '500k', '600k', '700k, '])
+        bitrate = str(random.choice(range(500, 3100, 100))) + 'k'
+
+        # will_noize = random.choice([True, False])
+        noize_k = random.uniform(0, 50)
+
+
+
+        
+        if will_mirror:
+            clip = mirroring(clip)
+            
+        clip = zooming(clip, k_for_zooming)
+        
+        clip = cropping(clip, cropping_left_down, cropping_right_upper)
+        
+        clip = respeeding(clip, new_speed)
+        
+        clip = rebritning(clip, new_britness)
         
         
+        clip.write_videofile(result_dir + video_names[i] + '.mp4', bitrate=bitrate, ffmpeg_params=['-vf', f'noise=alls={noize_k}:allf=t+u'])
         
-        
-        
-        
-        
-        clip.write_videofile(result_dir + video_names[i] + '.mp4')
+        print(f"*" * 100, clip.size, f'will_mirror, {k_for_zooming=}, {cropping_left_down=}, {cropping_right_upper=}, {new_speed=}, {new_britness=}, {bitrate=}, {noize_k=}')
     
     return video_names
 
@@ -257,11 +279,11 @@ def duper(dataset_dir_path: str, result_dir: str, original_annotations_file_path
     
     
 
-# duper(
-#     dataset_dir_path='main/to_augment/',
-#     result_dir='main/augmented/',
-#     original_annotations_file_path='main/to_augment/annotations.csv',
-#     result_annotations_file_path='main/augmented/pupu.csv',
-#     multiplyer=5
-# )
+duper(
+    dataset_dir_path='Alex_Karachun/to_augment/',
+    result_dir='Alex_Karachun/augmented/',
+    original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
+    result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
+    multiplyer=10
+)
     

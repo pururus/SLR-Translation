@@ -1,8 +1,12 @@
 import torch
 import torch.nn as nn
 from typing import List
-from basicblock import BasicBlock
-from bottleneck import BottleneckBlock
+if __name__ == "__main__":
+    from basicblock import BasicBlock
+    from bottleneck import BottleneckBlock
+else:
+    from resnet.basicblock import BasicBlock
+    from resnet.bottleneck import BottleneckBlock
 
 class ToVect(nn.Module):
   def forward(self, img):

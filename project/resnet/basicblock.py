@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
-from block import Block
+if __name__ == "__main__":
+    from block import Block
+else:
+    from resnet.block import Block
 
 class BasicBlock(Block):
     def __init__(self, in_channels, out_channels):

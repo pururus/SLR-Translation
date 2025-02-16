@@ -18,7 +18,10 @@ class NNTrainer():
         
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
-    def train(self, model: nn.Module):
+    def train(self, model: nn.Module, path: str):
+        '''
+        trains model and saves to path
+        '''
         self.learning_rate = self.start_learning_rate
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate, weight_decay = 0.005, momentum = 0.9)
@@ -58,3 +61,5 @@ class NNTrainer():
         if epoch % 5 == 4:
             self.learning_rate /= 5
             optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate, weight_decay = 0.005, momentum = 0.9)
+        
+        torch.save(model.state_dict(), path)

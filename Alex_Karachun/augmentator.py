@@ -8,7 +8,7 @@ import math
 import cv2
 import logging
 
-logging.getLogger("moviepy").setLevel(logging.CRITICAL)
+# logging._Level(logging.CRITICAL)
 
 
 '''
@@ -25,6 +25,19 @@ fuck - крутить
 fuck - дрожь
 fuck - цветофильтры
 fuck - Гауссово размытие
+
+
+
+
+mirroring
+zooming
+cropping
+respeeding
+rebritning
+крутить
+дрожь
+цветофильтры
+Гауссово размытие
 '''
 
 
@@ -88,9 +101,11 @@ def cropping(clip: mp.VideoFileClip, left_down: list[int, int], right_upper: lis
 
 
 def resizing(clip: mp.VideoFileClip, needed_size: list[int, int]) -> mp.VideoFileClip:
-    resizer = mp.video.fx.Resize()
-    resizer.new_size = needed_size
-    clip = resizer.apply(clip)
+    # resizer = mp.video.fx.Resize()
+    # resizer.new_size = needed_size
+    # clip = resizer.apply(clip)
+    # return clip
+    clip = clip.resized(new_size=needed_size)
     return clip
 
 
@@ -159,7 +174,7 @@ def mirroring(clip: mp.VideoFileClip) -> mp.VideoFileClip:
 
 
 
-def process_video(video_path: str, result_dir: str, multiplyer: int) -> list[str]:
+def process_video(video_path: str, result_dir: str, multiplyer: int, expected_size=[int, int]) -> list[str]:
     '''
     берем видео из video_path
     стакаем его multiplyer раз
@@ -208,14 +223,14 @@ def process_video(video_path: str, result_dir: str, multiplyer: int) -> list[str
         
         new_speed = random.uniform(0.8, 1.5)
         
-        new_britness = random.uniform(0.2, 1.7)
+        new_britness = random.uniform(0.5, 1.7)
         
         # bitrate = random.choice(['100k', '200k', '300k', '400k', '500k', '600k', '700k'])
         # bitrate = random.choice(['300k', '400k', '500k', '600k', '700k, '])
-        bitrate = str(random.choice(range(500, 3100, 100))) + 'k'
+        bitrate = str(random.choice(range(700, 3100, 100))) + 'k'
 
         # will_noize = random.choice([True, False])
-        noize_k = random.uniform(0, 50)
+        noize_k = random.uniform(0, 20)
 
 
 
@@ -232,7 +247,12 @@ def process_video(video_path: str, result_dir: str, multiplyer: int) -> list[str
         clip = rebritning(clip, new_britness)
         
         
+        
+        # resizing(clip=clip, needed_size=expected_size)
+        clip = clip.resized(height=expected_size[0])
+        
         clip.write_videofile(result_dir + video_names[i] + '.mp4', bitrate=bitrate, ffmpeg_params=['-vf', f'noise=alls={noize_k}:allf=t+u'])
+        
         
         print(f"*" * 100, clip.size, f'will_mirror, {k_for_zooming=}, {cropping_left_down=}, {cropping_right_upper=}, {new_speed=}, {new_britness=}, {bitrate=}, {noize_k=}')
     
@@ -241,7 +261,7 @@ def process_video(video_path: str, result_dir: str, multiplyer: int) -> list[str
     
 # process_video('main/to_augment/1.mp4', 'main/augmentated/', 3)
 
-def duper(dataset_dir_path: str, result_dir: str, original_annotations_file_path: str, result_annotations_file_path: str, multiplyer: int) -> None:
+def duper(dataset_dir_path: str, result_dir: str, original_annotations_file_path: str, result_annotations_file_path: str, multiplyer: int, expected_size=[int, int]) -> None:
     '''
     перебираем все видео таким вот так: dataset_dir_path + annotations['attachment_id'] + '.mp4'
     
@@ -265,11 +285,14 @@ def duper(dataset_dir_path: str, result_dir: str, original_annotations_file_path
         dupped_names = process_video(
             video_path=dataset_dir_path + str(row['attachment_id']) + '.mp4',
             result_dir=result_dir,
-            multiplyer=multiplyer
+            multiplyer=multiplyer,
+            expected_size=expected_size
             )
         
         for new_name in dupped_names:
             row['attachment_id'] = new_name
+            row['height'] = expected_size[1]
+            row['width'] = expected_size[0]
             new_data.loc[new_video_id] = row
             new_video_id += 1
             
@@ -284,6 +307,17 @@ duper(
     result_dir='Alex_Karachun/augmented/',
     original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
     result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
-    multiplyer=10
+    multiplyer=10,
+    expected_size=[240, 240]
+    
 )
     
+
+
+'''
+доделать:
+- чтобы на каждый жест создавалась папка с кадрами, пренадлежащими ему. Так же из видео надо брать не все кардры, а только в диапазоне с жестом
+- оставить в датасете только вертикальные видео
+
+
+'''

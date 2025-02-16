@@ -20,6 +20,9 @@ class id_layer(nn.Module):
     return x
 
 class PreResNetMediapipe(nn.Module):
+  '''
+  Pretrained module based on resnet and taking mediapipe landmarks into account as well
+  '''
   def __init__(self, num_classes):
     super(PreResNetMediapipe, self).__init__()
 

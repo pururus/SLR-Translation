@@ -10,12 +10,12 @@ class ToVect(nn.Module):
   def forward(self, img):
     return img.view(img.size(0), -1)
 
-class ResNetF2G(nn.Module):
+class MediapipeF2G(nn.Module):
     '''
     Frame2Gloss module taking into account only mediapipe landmark
     '''
     def __init__(self, num_classes):
-        super(ResNetF2G, self).__init__()
+        super(MediapipeF2G, self).__init__()
         
         self.mp_transformer = MediapipeTransformer()
         

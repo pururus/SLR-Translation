@@ -5,6 +5,10 @@ import numpy as np
 import torch.nn as nn
 
 def pretrained_resnet(num_classes):
+  '''
+  Pretrained resnet 50
+  '''
+  
   model = models.resnet50(pretrained=True)
 
   for param in model.parameters():

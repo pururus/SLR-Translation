@@ -12,12 +12,12 @@ class ToVect(nn.Module):
   def forward(self, img):
     return img.view(img.size(0), -1)
 
-class ResNetF2G(nn.Module):
+class ResPipeF2G(nn.Module):
     '''
     Frame2Gloss module based on ResNet50, taking into account mediapipe landmark either
     '''
     def __init__(self, frame_shape: List[int], num_classes):
-        super(ResNetF2G, self).__init__()
+        super(ResPipeF2G, self).__init__()
         
         self.conv1= nn.Conv2d(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3)
         self.batch_norm1 = nn.BatchNorm2d(64)

@@ -1,9 +1,15 @@
 from torch import tensor
 
 def is_new(index: int, glosses: tensor, processed_glosses: list):
+    '''
+    Checks that the gloss at index in glosses is different from the last gloss in processed_glosses
+    '''
     return len(processed_glosses) == 0 or glosses[index].item() != processed_glosses[-1]
 
 def is_not_mistake(index: int, glosses: tensor):
+    '''
+    Checks that the gloss at index in glosses is similar to the next one or the one after the next
+    '''
     return ((index + 1 < glosses.shape[0] and glosses[index].item() == glosses[index + 1].item()) or
             (index + 2 < glosses.shape[0] and glosses[index].item() == glosses[index + 2].item()))
 

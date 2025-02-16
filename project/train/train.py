@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 
 class NNTrainer():
+    '''
+    Class for training models
+    '''
     def __init__(self, train_loader, valid_loader, test_loader, num_classes, batch_size, num_epochs):
         self.train_loader = train_loader
         self.valid_loader = valid_loader

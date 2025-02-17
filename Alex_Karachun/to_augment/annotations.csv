@@ -1,2 +1,5 @@
-attachment_id	text	user_id	height	width	length	train
-1	Ё	185bd3a81d9d618518d10abebf0d17a8	1920	1080	76.0	True
+attachment_id	text	user_id	height	width	length	train	begin	end
+44e8d2a0-7e01-450b-90b0-beb7400d2c1e	Ё	185bd3a81d9d618518d10abebf0d17a8	1920	1080	156.0	True	36	112
+df5b08f0-41d1-4572-889c-8b893e71069b	А	185bd3a81d9d618518d10abebf0d17a8	1920	1080	150.0	True	36	76
+no7a7812b1-ae64-4402-9ebc-5b947edbd021	no_event	f5b82a9c82f6d870ec253e4c3fa96d83	1280	720	32.0	False	0	32
+no834a06ad-d4ea-4489-ac3a-fea461af51cb	no_event	20f1589682a8e64769ae2ebc21b5fb6b	720	1280	50.0	False	0	50

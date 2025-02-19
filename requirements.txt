@@ -1,3 +1,11 @@
 opencv-python
 pandas
-moviepy
+augly[all]
+ffmpeg
+numpy
+torch
+torchaudio
+librosa
+vidgear==0.2.6
+opencv-python
+pillow

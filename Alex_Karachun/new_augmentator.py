@@ -248,7 +248,7 @@ if __name__ == '__main__':
         original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
         result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
         multiplyer=4,
-        expected_size=[256, 144],  # высота, ширина
+        expected_size=[240, 135],  # высота, ширина
         frames_dir='Alex_Karachun/augmented/frames/',
         n_processes=mp.cpu_count() * 2
     )

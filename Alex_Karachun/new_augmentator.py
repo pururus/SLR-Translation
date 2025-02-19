@@ -25,11 +25,9 @@ done - (при сохранении добавлять ffmpeg_params со шум
 done - respeeding - менять скорость
 done - rebritning, x in [0.2, 1.7] - изменение яркости и контрастности
 
-Новые задачи:
 - Для каждого жеста (заданного диапазоном кадров begin-end) создать папку с кадрами, принадлежащими ему.
   Кадры, не попадающие в этот диапазон, сохраняются в папку no_event.
   Видео без жестов (text = "no_event") – все кадры в папку no_event.
-- Оставить в датасете только вертикальные видео.
 - Обрабатывать только те видео, у которых (height, width) ∈ [(1920, 1080), (1280, 720)].
 '''
 
@@ -85,7 +83,7 @@ def save_clip_frames(clip: mp.VideoFileClip,
     os.makedirs(no_gest_path, exist_ok=True)
     
     named_gest_file = os.path.join(gest_path, "gestname.txt")
-    not_named_gest_file = os.path.join(gest_path, "gestname.txt")
+    not_named_gest_file = os.path.join(no_gest_path, "gestname.txt")
     
     with open(named_gest_file, 'w') as f:
         print(gest_name, file=f)
@@ -96,7 +94,7 @@ def save_clip_frames(clip: mp.VideoFileClip,
     
     
     for i, frame in enumerate(clip.iter_frames()):
-        if i <= start_gest_frame_ind or i >= end_gest_frame_ind:
+        if i >= start_gest_frame_ind and i <= end_gest_frame_ind:
             filename = os.path.join(gest_path, f'{clip_name}_{i:04d}.png')
         else:
             filename = os.path.join(no_gest_path, f'{clip_name}_{i:04d}.png')
@@ -126,6 +124,7 @@ def process_video(video_path: str,
     
     original_clip = mp.VideoFileClip(video_path)
     original_clip = original_clip.resized(height=expected_size[0], width=expected_size[1])
+    original_clip_length = int(original_clip.fps * original_clip.duration)
 
     
     for i in range(multiplyer):
@@ -166,7 +165,6 @@ def process_video(video_path: str,
         output_path = os.path.join(result_dir, video_name + '.mp4')
         
         # видео сохраняются в result_dir с рандомными именами.
-        original_clip_length = int(original_clip.fps * original_clip.duration)
         begin_gest_part = original_annotation['begin'] / original_clip_length
         end_gest_part = original_annotation['end'] / original_clip_length
         
@@ -183,16 +181,38 @@ def process_video(video_path: str,
         
         # добавляет запись в result_annotations_file_path
         
-        new_clip_lenght = int(clip.fps * clip.duration)
+        new_clip_length = int(clip.fps * clip.duration)
 
 
         annotation = original_annotation.copy()
         annotation['attachment_id'] = video_name
         annotation['height'] = clip.size[1]
         annotation['width'] = clip.size[0]
-        annotation['lenght'] = new_clip_lenght
-        annotation['begin'] = int(original_clip_length * begin_gest_part)
-        annotation['end'] = int(original_clip_length * end_gest_part)
+        annotation['length'] = new_clip_length
+        annotation['begin'] = int(new_clip_length * begin_gest_part)
+        annotation['end'] = int(new_clip_length * end_gest_part)
+        
+        # print('\n' * 5)
+        
+        # print(f'{begin_gest_part = }')
+        # print(f'{end_gest_part = }')
+        
+        # print()
+        # print(f'{original_clip_length = }')
+        # print(f'{original_annotation["begin"] = }')
+        # print(f'{original_annotation["end"] = }')
+        # print(f'{original_clip.fps = }')
+        
+        # print()
+        # print(f'{new_clip_length = }')
+        # print(f'{annotation["begin"] = }')
+        # print(f'{annotation["end"] = }')
+        # print(f'{clip.fps = }')
+
+
+        
+        # print('\n' * 5)
+        # exit()
         
         annotations = pd.concat([annotations, annotation.to_frame().T], ignore_index=True)
         
@@ -251,13 +271,10 @@ def duper(dataset_dir_path: str, result_dir: str, original_annotations_file_path
         
         new_data = pd.concat([new_data, curr_data], ignore_index=True)
 
-    print(new_data)
     new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w")
 
         
 
-# for l in ['tqdm.cli', 'tqdm', 'dotenv.main', 'dotenv', 'imageio', 'imageio_ffmpeg', 'imageio.plugins.ffmpeg', 'imageio.plugins', 'PIL.Image', 'PIL', 'stack_data.serializing', 'stack_data', 'parso', 'concurrent.futures', 'concurrent', 'asyncio', 'prompt_toolkit.buffer', 'prompt_toolkit', 'parso.python.diff', 'parso.python', 'parso.cache']:
-#     logging.getLogger(l).setLevel(logging.ERROR)
 
 
 
@@ -266,7 +283,7 @@ duper(
     result_dir='Alex_Karachun/augmented/',
     original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
     result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
-    multiplyer=2,
+    multiplyer=3,
     expected_size=[256, 144],  # высота, ширина
     frames_dir='Alex_Karachun/augmented/frames/'
 )

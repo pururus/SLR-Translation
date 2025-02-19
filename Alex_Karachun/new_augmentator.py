@@ -10,6 +10,8 @@ import logging
 import os
 import csv
 from proglog import MuteProgressBarLogger
+import imageio
+
 
 
 
@@ -33,8 +35,9 @@ done - rebritning, x in [0.2, 1.7] - изменение яркости и кон
 
 def rebritning(clip: mp.VideoFileClip, x: float) -> mp.VideoFileClip:
     # Изменение яркости/контрастности
-    respeeder = mp.video.fx.MultiplyColor(factor=x)
-    return respeeder.apply(clip)
+    rebriter = mp.video.fx.MultiplyColor(factor=x)
+    return rebriter.apply(clip)
+
 
 def respeeding(clip: mp.VideoFileClip, x: float) -> mp.VideoFileClip:
     # respeeder = mp.video.fx.MultiplySpeed()
@@ -66,7 +69,42 @@ def mirroring(clip: mp.VideoFileClip) -> mp.VideoFileClip:
     return mp.video.fx.MirrorX().apply(clip)
 
 
-# def process_video(video_path: str, result_dir: str, multiplyer: int, expected_size: list[int, int]) -> None:
+def save_clip_frames(clip: mp.VideoFileClip,
+                     path_to_save_dir,
+                     clip_name,
+                     gest_name,
+                     no_gest_name,
+                     start_gest_frame_ind,
+                     end_gest_frame_ind) -> None:
+    
+    gest_path = os.path.join(path_to_save_dir, gest_name)
+    no_gest_path = os.path.join(path_to_save_dir, no_gest_name)
+
+    os.makedirs(path_to_save_dir, exist_ok=True)
+    os.makedirs(gest_path, exist_ok=True)
+    os.makedirs(no_gest_path, exist_ok=True)
+    
+    named_gest_file = os.path.join(gest_path, "gestname.txt")
+    not_named_gest_file = os.path.join(gest_path, "gestname.txt")
+    
+    with open(named_gest_file, 'w') as f:
+        print(gest_name, file=f)
+    
+    with open(not_named_gest_file, 'w') as f:
+        print(gest_name, file=f)
+
+    
+    
+    for i, frame in enumerate(clip.iter_frames()):
+        if i <= start_gest_frame_ind or i >= end_gest_frame_ind:
+            filename = os.path.join(gest_path, f'{clip_name}_{i:04d}.png')
+        else:
+            filename = os.path.join(no_gest_path, f'{clip_name}_{i:04d}.png')
+    
+        imageio.imwrite(filename, frame)
+            
+
+
 def process_video(video_path: str,
                   result_dir: str,
                   frames_dir: str,
@@ -89,8 +127,6 @@ def process_video(video_path: str,
     original_clip = mp.VideoFileClip(video_path)
     original_clip = original_clip.resized(height=expected_size[0], width=expected_size[1])
 
-    # clips = [deepcopy(original_clip) for _ in range(multiplyer)]
-    # video_names = [str(uuid4()) for _ in range(multiplyer)]
     
     for i in range(multiplyer):
         clip = original_clip.copy()
@@ -125,9 +161,6 @@ def process_video(video_path: str,
         clip = respeeding(clip, new_speed)
         clip = rebritning(clip, new_britness)
         
-        # # Ресайз до ожидаемого размера (здесь используем высоту из expected_size[0])
-        
-        
         
         
         output_path = os.path.join(result_dir, video_name + '.mp4')
@@ -145,6 +178,7 @@ def process_video(video_path: str,
                              ffmpeg_params=['-vf', f'noise=alls={noize_k}:allf=t+u', "-loglevel", "quiet"],
                             #  write_logfile=False,
                              logger=None)
+    
        
         
         # добавляет запись в result_annotations_file_path
@@ -154,14 +188,23 @@ def process_video(video_path: str,
 
         annotation = original_annotation.copy()
         annotation['attachment_id'] = video_name
-        annotation['height'] = expected_size[0]
-        annotation['width'] = expected_size[1]
+        annotation['height'] = clip.size[1]
+        annotation['width'] = clip.size[0]
         annotation['lenght'] = new_clip_lenght
         annotation['begin'] = int(original_clip_length * begin_gest_part)
         annotation['end'] = int(original_clip_length * end_gest_part)
         
         annotations = pd.concat([annotations, annotation.to_frame().T], ignore_index=True)
         
+        
+
+        save_clip_frames(clip=clip,
+                         path_to_save_dir=result_dir,
+                         clip_name=video_name, 
+                         gest_name=annotation['text'], 
+                         no_gest_name='no_event', 
+                         start_gest_frame_ind=annotation['begin'], 
+                         end_gest_frame_ind=annotation['end'])
         clip.close()
     
     original_clip.close()

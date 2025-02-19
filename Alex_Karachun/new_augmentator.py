@@ -93,15 +93,8 @@ def save_clip_frames(clip: mov.VideoFileClip,
             
 
 
-# def process_video(video_path: str,
-#                   result_dir: str,
-#                   frames_dir: str,
-#                   original_annotation: pd.Series,
-#                   result_annotations_file_path: str,
-#                   multiplyer: int,
-#                   expected_size: list[int, int]) -> pd.DataFrame:
 def process_video(args) -> pd.DataFrame:
-    video_path, result_dir, frames_dir, original_annotation, result_annotations_file_path, multiplyer, expected_size = args
+    video_path, result_dir, original_annotation, multiplyer, expected_size = args
 
     '''
     Берёт видео из video_path, делает multiplyer версий. к каждой:
@@ -116,7 +109,7 @@ def process_video(args) -> pd.DataFrame:
     annotations = pd.DataFrame()
     
     original_clip = mov.VideoFileClip(video_path)
-    original_clip = original_clip.resized(height=expected_size[0], width=expected_size[1])
+    original_clip = resizing(original_clip, needed_size=expected_size)
     original_clip_length = int(original_clip.fps * original_clip.duration)
 
     
@@ -201,9 +194,13 @@ def process_video(args) -> pd.DataFrame:
     return annotations
             
 
-def duper(dataset_dir_path: str, result_dir: str, original_annotations_file_path: str, 
-          result_annotations_file_path: str, multiplyer: int, expected_size=[256, 144],
-          frames_dir: str = None, n_processes: int = 4) -> None:
+def duper(dataset_dir_path: str,
+          result_dir: str,
+          original_annotations_file_path: str,
+          result_annotations_file_path: str,
+          multiplyer: int,
+          expected_size=[256, 144],
+          n_processes: int = 4) -> None:
     '''
     Для каждого видео из датасета:
       - Фильтрует по разрешению (оставляет только видео с нужными размерами)
@@ -227,9 +224,7 @@ def duper(dataset_dir_path: str, result_dir: str, original_annotations_file_path
         tasks.append((
             video_file,
             result_dir,
-            frames_dir,
             row,
-            result_annotations_file_path,
             multiplyer,
             expected_size
         ))
@@ -247,8 +242,7 @@ if __name__ == '__main__':
         result_dir='Alex_Karachun/augmented/',
         original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
         result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
-        multiplyer=4,
-        expected_size=[240, 135],  # высота, ширина
-        frames_dir='Alex_Karachun/augmented/frames/',
+        multiplyer=1,
+        expected_size=[224, 224],  # высота, ширина
         n_processes=mp.cpu_count() * 2
     )

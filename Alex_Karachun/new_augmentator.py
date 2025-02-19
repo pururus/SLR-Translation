@@ -1,17 +1,12 @@
-import moviepy as mp
+import moviepy as mov
 from copy import deepcopy
 from uuid import uuid4
 import pandas as pd
-import numpy as np
 import random
-import math
-import cv2
 import logging
 import os
-import csv
-from proglog import MuteProgressBarLogger
 import imageio
-
+import multiprocessing as mp
 
 
 
@@ -24,50 +19,45 @@ done - cropping - обрезать
 done - (при сохранении добавлять ffmpeg_params со шумами)
 done - respeeding - менять скорость
 done - rebritning, x in [0.2, 1.7] - изменение яркости и контрастности
-
-- Для каждого жеста (заданного диапазоном кадров begin-end) создать папку с кадрами, принадлежащими ему.
-  Кадры, не попадающие в этот диапазон, сохраняются в папку no_event.
-  Видео без жестов (text = "no_event") – все кадры в папку no_event.
-- Обрабатывать только те видео, у которых (height, width) ∈ [(1920, 1080), (1280, 720)].
 '''
 
-def rebritning(clip: mp.VideoFileClip, x: float) -> mp.VideoFileClip:
+def rebritning(clip: mov.VideoFileClip, x: float) -> mov.VideoFileClip:
     # Изменение яркости/контрастности
-    rebriter = mp.video.fx.MultiplyColor(factor=x)
+    rebriter = mov.video.fx.MultiplyColor(factor=x)
     return rebriter.apply(clip)
 
 
-def respeeding(clip: mp.VideoFileClip, x: float) -> mp.VideoFileClip:
-    # respeeder = mp.video.fx.MultiplySpeed()
+def respeeding(clip: mov.VideoFileClip, x: float) -> mov.VideoFileClip:
+    # respeeder = mov.video.fx.MultiplySpeed()
     # respeeder.factor = x
     # return respeeder.apply(clip)
     return clip.with_speed_scaled(x)
 
-def cropping(clip: mp.VideoFileClip, left_down: list, right_upper: list) -> mp.VideoFileClip:
+def cropping(clip: mov.VideoFileClip, left_down: list, right_upper: list) -> mov.VideoFileClip:
     original_size = clip.size
-    cropper = mp.video.fx.Crop()
+    cropper = mov.video.fx.Crop()
     cropper.x1, cropper.y1 = left_down
     cropper.x2, cropper.y2 = right_upper 
     return resizing(cropper.apply(clip), original_size)
 
-def resizing(clip: mp.VideoFileClip, needed_size: list) -> mp.VideoFileClip:
+def resizing(clip: mov.VideoFileClip, needed_size: list) -> mov.VideoFileClip:
     # Используем встроенный метод resizing
     return clip.resized(new_size=needed_size)
 
-def zooming(clip: mp.VideoFileClip, k=1.5) -> mp.VideoFileClip:
+def zooming(clip: mov.VideoFileClip, k=1.5) -> mov.VideoFileClip:
     original_size = clip.size
-    cropper = mp.video.fx.Crop()
+    cropper = mov.video.fx.Crop()
     cropper.x_center = clip.size[0] / 2
     cropper.y_center = clip.size[1] / 2
     cropper.width = clip.size[0] / k
     cropper.height = clip.size[1] / k
     return resizing(cropper.apply(clip), original_size)
 
-def mirroring(clip: mp.VideoFileClip) -> mp.VideoFileClip:
-    return mp.video.fx.MirrorX().apply(clip)
+def mirroring(clip: mov.VideoFileClip) -> mov.VideoFileClip:
+    return mov.video.fx.MirrorX().apply(clip)
 
 
-def save_clip_frames(clip: mp.VideoFileClip,
+def save_clip_frames(clip: mov.VideoFileClip,
                      path_to_save_dir,
                      clip_name,
                      gest_name,
@@ -103,13 +93,16 @@ def save_clip_frames(clip: mp.VideoFileClip,
             
 
 
-def process_video(video_path: str,
-                  result_dir: str,
-                  frames_dir: str,
-                  original_annotation: pd.Series,
-                  result_annotations_file_path: str,
-                  multiplyer: int,
-                  expected_size: list[int, int]) -> pd.DataFrame:
+# def process_video(video_path: str,
+#                   result_dir: str,
+#                   frames_dir: str,
+#                   original_annotation: pd.Series,
+#                   result_annotations_file_path: str,
+#                   multiplyer: int,
+#                   expected_size: list[int, int]) -> pd.DataFrame:
+def process_video(args) -> pd.DataFrame:
+    video_path, result_dir, frames_dir, original_annotation, result_annotations_file_path, multiplyer, expected_size = args
+
     '''
     Берёт видео из video_path, делает multiplyer версий. к каждой:
     - применяет случайный набор преобразований.
@@ -122,7 +115,7 @@ def process_video(video_path: str,
     
     annotations = pd.DataFrame()
     
-    original_clip = mp.VideoFileClip(video_path)
+    original_clip = mov.VideoFileClip(video_path)
     original_clip = original_clip.resized(height=expected_size[0], width=expected_size[1])
     original_clip_length = int(original_clip.fps * original_clip.duration)
 
@@ -143,7 +136,7 @@ def process_video(video_path: str,
         cropping_right_upper = [clip.size[0] - int(random.uniform(0, clip.size[0] * 0.05)),
                                 clip.size[1] - int(random.uniform(0, clip.size[1] * 0.05))]
         new_speed = random.uniform(0.8, 1.5)
-        new_britness = random.uniform(0.5, 1.7)
+        new_britness = random.uniform(0.5, 1.4)
         bitrate = str(random.choice(range(700, 5000, 100))) + 'k'
         noize_k = random.uniform(0, 20)
         
@@ -151,7 +144,6 @@ def process_video(video_path: str,
 
         # применяет случайный набор преобразований.
 
-        # НЕ ЗАБЫТЬ РАЗКОМЕНТИРОВАТЬ
         if will_mirror:
             clip = mirroring(clip)
 
@@ -180,10 +172,8 @@ def process_video(video_path: str,
        
         
         # добавляет запись в result_annotations_file_path
-        
         new_clip_length = int(clip.fps * clip.duration)
-
-
+        
         annotation = original_annotation.copy()
         annotation['attachment_id'] = video_name
         annotation['height'] = clip.size[1]
@@ -192,27 +182,6 @@ def process_video(video_path: str,
         annotation['begin'] = int(new_clip_length * begin_gest_part)
         annotation['end'] = int(new_clip_length * end_gest_part)
         
-        # print('\n' * 5)
-        
-        # print(f'{begin_gest_part = }')
-        # print(f'{end_gest_part = }')
-        
-        # print()
-        # print(f'{original_clip_length = }')
-        # print(f'{original_annotation["begin"] = }')
-        # print(f'{original_annotation["end"] = }')
-        # print(f'{original_clip.fps = }')
-        
-        # print()
-        # print(f'{new_clip_length = }')
-        # print(f'{annotation["begin"] = }')
-        # print(f'{annotation["end"] = }')
-        # print(f'{clip.fps = }')
-
-
-        
-        # print('\n' * 5)
-        # exit()
         
         annotations = pd.concat([annotations, annotation.to_frame().T], ignore_index=True)
         
@@ -232,59 +201,54 @@ def process_video(video_path: str,
     return annotations
             
 
-
 def duper(dataset_dir_path: str, result_dir: str, original_annotations_file_path: str, 
           result_annotations_file_path: str, multiplyer: int, expected_size=[256, 144],
-          frames_dir: str = None) -> None:
+          frames_dir: str = None, n_processes: int = 4) -> None:
     '''
     Для каждого видео из датасета:
-      - Фильтрует по разрешению и оставляет только вертикальные видео с разрешениями (1920, 1080), (1280, 720), (1920, 960)
+      - Фильтрует по разрешению (оставляет только видео с нужными размерами)
       - Создаёт multiplyer аугментированных копий со случайными преобразованиями
-      - С каждой копии видео, разкладывает кадры с жестом и без по папочкам
+      - С каждой копии видео разбивает кадры по папкам
       - Сохраняет новые видео в result_dir
-      - Обновляет annotations.csv
-    
+      - Обновляет annotations.csv, содержащий все метаданные по созданным видео
     '''
     data = pd.read_csv(original_annotations_file_path, sep='\t')
     
-    # Фильтрует по разрешению и оставляет только вертикальные видео с разрешениями (1920, 1080), (1280, 720), (1920, 960),
+    # Фильтрация по разрешению:
     allowed_res = [(1920, 1080), (1280, 720), (1920, 960)]
     data = data[data.apply(lambda row: (row['height'], row['width']) in allowed_res, axis=1)]
     
-    new_data = pd.DataFrame(columns=data.columns)
-    
+    tasks = []
     for i, row in data.iterrows():
         video_file = os.path.join(dataset_dir_path, str(row['attachment_id']) + '.mp4')
         if not os.path.exists(video_file):
             logging.error(f"Видео не найдено: {video_file}")
             continue
-
-        curr_data = process_video(
-            video_path=video_file,
-            result_dir=result_dir,
-            frames_dir=frames_dir,
-            original_annotation=row,
-            result_annotations_file_path=result_annotations_file_path,
-            multiplyer=multiplyer,
-            expected_size=expected_size,  
-        )
-        
-        new_data = pd.concat([new_data, curr_data], ignore_index=True)
-
+        tasks.append((
+            video_file,
+            result_dir,
+            frames_dir,
+            row,
+            result_annotations_file_path,
+            multiplyer,
+            expected_size
+        ))
+    
+    with mp.Pool(n_processes) as pool:
+        results = pool.map(process_video, tasks)
+    
+    new_data = pd.concat(results, ignore_index=True)
     new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w")
 
-        
+if __name__ == '__main__':
 
-
-
-
-duper(
-    dataset_dir_path='Alex_Karachun/to_augment/',
-    result_dir='Alex_Karachun/augmented/',
-    original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
-    result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
-    multiplyer=3,
-    expected_size=[256, 144],  # высота, ширина
-    frames_dir='Alex_Karachun/augmented/frames/'
-)
-
+    duper(
+        dataset_dir_path='Alex_Karachun/to_augment/',
+        result_dir='Alex_Karachun/augmented/',
+        original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
+        result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
+        multiplyer=4,
+        expected_size=[256, 144],  # высота, ширина
+        frames_dir='Alex_Karachun/augmented/frames/',
+        n_processes=mp.cpu_count() * 2
+    )

@@ -233,7 +233,11 @@ def duper(dataset_dir_path: str,
         results = pool.map(process_video, tasks)
     
     new_data = pd.concat(results, ignore_index=True)
-    new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w")
+    # new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w")
+    if os.path.exists(result_annotations_file_path) and os.stat(result_annotations_file_path).st_size > 0:
+        new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="a", header=False)
+    else:
+        new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w", header=True)
 
 if __name__ == '__main__':
 
@@ -242,7 +246,7 @@ if __name__ == '__main__':
         result_dir='Alex_Karachun/augmented/',
         original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
         result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
-        multiplyer=1,
+        multiplyer=3,
         expected_size=[224, 224],  # высота, ширина
         n_processes=mp.cpu_count() * 2
     )

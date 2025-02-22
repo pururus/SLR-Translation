@@ -7,6 +7,9 @@ import logging
 import os
 import imageio
 
+from tqdm.contrib.concurrent import process_map
+
+
 import time
 
 '''
@@ -104,6 +107,7 @@ def process_video(args) -> pd.DataFrame:
     
     
     '''
+        
     
     annotations = pd.DataFrame()
     
@@ -124,7 +128,7 @@ def process_video(args) -> pd.DataFrame:
         will_mirror = random.choice([True, False])
         k_for_zooming = random.uniform(1, 1.2)
         cropping_left_down = [int(random.uniform(0, clip.size[0] * 0.05)),
-                              int(random.uniform(0, clip.size[1] * 0.05))]
+                            int(random.uniform(0, clip.size[1] * 0.05))]
         cropping_right_upper = [clip.size[0] - int(random.uniform(0, clip.size[0] * 0.05)),
                                 clip.size[1] - int(random.uniform(0, clip.size[1] * 0.05))]
         new_speed = random.uniform(0.8, 1.5)
@@ -156,12 +160,12 @@ def process_video(args) -> pd.DataFrame:
     
 
         clip.write_videofile(output_path,
-                             bitrate=bitrate, 
-                             ffmpeg_params=['-vf', f'noise=alls={noize_k}:allf=t+u', "-loglevel", "quiet"],
+                            bitrate=bitrate, 
+                            ffmpeg_params=['-vf', f'noise=alls={noize_k}:allf=t+u', "-loglevel", "quiet"],
                             #  write_logfile=False,
-                             logger=None)
+                            logger=None)
     
-       
+    
         
         # добавляет запись в result_annotations_file_path
         new_clip_length = int(clip.fps * clip.duration)
@@ -180,12 +184,12 @@ def process_video(args) -> pd.DataFrame:
         
 
         save_clip_frames(clip=clip,
-                         path_to_save_dir=result_dir,
-                         clip_name=video_name, 
-                         gest_name=annotation['text'], 
-                         no_gest_name='no_event', 
-                         start_gest_frame_ind=annotation['begin'], 
-                         end_gest_frame_ind=annotation['end'])
+                        path_to_save_dir=result_dir,
+                        clip_name=video_name, 
+                        gest_name=annotation['text'], 
+                        no_gest_name='no_event', 
+                        start_gest_frame_ind=annotation['begin'], 
+                        end_gest_frame_ind=annotation['end'])
         clip.close()
     
     original_clip.close()
@@ -228,8 +232,9 @@ def duper(dataset_dir_path: str,
             expected_size
         ))
     
-    with mp.Pool(n_processes) as pool:
-        results = pool.map(process_video, tasks)
+    # with mp.Pool(n_processes) as pool:
+    #     results = pool.map(process_video, tasks)
+    results = process_map(process_video, tasks, max_workers=n_processes)
     
     new_data = pd.concat(results, ignore_index=True)
     # new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w")
@@ -245,7 +250,7 @@ if __name__ == '__main__':
     
     t1 = time.time()
     workers_mult = 2
-    multiplyer = 2
+    multiplyer = 1
     duper(
         dataset_dir_path='../slovo_full/original/',
         result_dir='../slovo_full/augmented/',
@@ -276,6 +281,8 @@ if __name__ == '__main__':
 196 секунд работало на workers_mult = 1.5 для multiplyer = 2, 100 ориг видео
 192 секунд работало на workers_mult = 2 для multiplyer = 2, 100 ориг видео
 221 секунд работало на workers_mult = 5 для multiplyer = 2, 100 ориг видео
+
+96 секунд работало на workers_mult = 2 для multiplyer = 1, 100 ориг видео
 
 лучше всего использовать workers_mult
 тогда 1 итог видео делается 2 сек

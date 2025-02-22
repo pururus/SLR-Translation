@@ -6,9 +6,8 @@ import random
 import logging
 import os
 import imageio
-import multiprocessing as mp
 
-
+import time
 
 '''
 ТЗ:
@@ -240,13 +239,45 @@ def duper(dataset_dir_path: str,
         new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w", header=True)
 
 if __name__ == '__main__':
-
+    import multiprocessing as mp
+    mp.set_start_method('spawn', force=True)
+    mp.freeze_support()
+    
+    t1 = time.time()
+    workers_mult = 2
+    multiplyer = 2
     duper(
-        dataset_dir_path='Alex_Karachun/to_augment/',
-        result_dir='Alex_Karachun/augmented/',
-        original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
-        result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
-        multiplyer=3,
+        dataset_dir_path='../slovo_full/original/',
+        result_dir='../slovo_full/augmented/',
+        original_annotations_file_path='../slovo_full/annotations.csv',
+        result_annotations_file_path='../slovo_full/augmented_annotations.csv',
+        multiplyer=multiplyer,
         expected_size=[224, 224],  # высота, ширина
-        n_processes=mp.cpu_count() * 2
+        n_processes=int(mp.cpu_count() * workers_mult)
+        
+        
+        # dataset_dir_path='Alex_Karachun/to_augment/',
+        # result_dir='Alex_Karachun/augmented/',
+        # original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
+        # result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
+        # multiplyer=3,
+        # expected_size=[224, 224],  # высота, ширина
+        # n_processes=mp.cpu_count()
     )
+    t2 = time.time()
+    
+    print(f'{int(t2 - t1)} секунд работало на {workers_mult = } для {multiplyer = }, 100 ориг видео')
+    
+'''
+16.5 мб/1 итоговое видео
+
+223 секунд работало на workers_mult = 0.5 для multiplyer = 2, 100 ориг видео
+195 секунд работало на workers_mult = 1 для multiplyer = 2, 100 ориг видео
+196 секунд работало на workers_mult = 1.5 для multiplyer = 2, 100 ориг видео
+192 секунд работало на workers_mult = 2 для multiplyer = 2, 100 ориг видео
+221 секунд работало на workers_mult = 5 для multiplyer = 2, 100 ориг видео
+
+лучше всего использовать workers_mult
+тогда 1 итог видео делается 2 сек
+тогда увеличить весь датасет в два раза занимает 11.5 часов
+'''

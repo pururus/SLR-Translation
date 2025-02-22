@@ -249,12 +249,12 @@ if __name__ == '__main__':
     mp.freeze_support()
     
     t1 = time.time()
-    workers_mult = 2
+    workers_mult = 1/3
     multiplyer = 1
     duper(
         dataset_dir_path='../slovo_full/original/',
         result_dir='../slovo_full/augmented/',
-        original_annotations_file_path='../slovo_full/annotations.csv',
+        original_annotations_file_path='../slovo_full/annotations_full.csv',
         result_annotations_file_path='../slovo_full/augmented_annotations.csv',
         multiplyer=multiplyer,
         expected_size=[224, 224],  # высота, ширина

@@ -6,6 +6,7 @@ import random
 import logging
 import os
 import imageio
+import hashlib
 
 from tqdm.contrib.concurrent import process_map
 
@@ -65,9 +66,10 @@ def save_clip_frames(clip: mov.VideoFileClip,
                      gest_name,
                      no_gest_name,
                      start_gest_frame_ind,
-                     end_gest_frame_ind) -> None:
+                     end_gest_frame_ind, 
+                     gest_dir_name) -> None:
     
-    gest_path = os.path.join(path_to_save_dir, gest_name)
+    gest_path = os.path.join(path_to_save_dir, gest_dir_name)
     no_gest_path = os.path.join(path_to_save_dir, no_gest_name)
 
     os.makedirs(path_to_save_dir, exist_ok=True)
@@ -189,7 +191,8 @@ def process_video(args) -> pd.DataFrame:
                         gest_name=annotation['text'], 
                         no_gest_name='no_event', 
                         start_gest_frame_ind=annotation['begin'], 
-                        end_gest_frame_ind=annotation['end'])
+                        end_gest_frame_ind=annotation['end'], 
+                        gest_dir_name=hashlib.md5(annotation['text'].encode()).hexdigest())
         clip.close()
     
     original_clip.close()

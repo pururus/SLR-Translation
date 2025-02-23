@@ -253,7 +253,7 @@ def duper(dataset_dir_path: str,
     
     # with mp.Pool(n_processes) as pool:
     #     results = pool.map(process_video, tasks)
-    results = process_map(process_video, tasks, max_workers=n_processes)
+    results = process_map(process_video, tasks, max_workers=n_processes, chunksize=10)
     
     new_data = pd.concat(results, ignore_index=True)
     # new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w")
@@ -302,6 +302,8 @@ if __name__ == '__main__':
 221 секунд работало на workers_mult = 5 для multiplyer = 2, 100 ориг видео
 
 96 секунд работало на workers_mult = 2 для multiplyer = 1, 100 ориг видео
+
+22513 секунд работало на workers_mult = 0.3333333333333333 для multiplyer = 1, 1500 ориг видео
 
 лучше всего использовать workers_mult
 тогда 1 итог видео делается 2 сек

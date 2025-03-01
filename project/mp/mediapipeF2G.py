@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from typing import List
 
-from project.mediapipe_transformer.mediapipe_transformer import MediapipeTransformer
+from mediapipe_transformer.mediapipe_transformer import MediapipeTransformer
 
 class ToVect(nn.Module):
   def forward(self, img):
@@ -20,7 +20,6 @@ class MediapipeF2G(nn.Module):
         self.mp_transformer = MediapipeTransformer()
         
         self.fc1 = nn.Sequential(
-            nn.Dropout(0.5),
             nn.Linear(126, num_classes * 10),
             nn.ReLU())
         
@@ -29,7 +28,6 @@ class MediapipeF2G(nn.Module):
     
     def forward(self, x):
         x = self.mp_transformer.process_img(x)
-        x = self.fc(x)
         x = self.fc1(x)
         x = self.fc2(x)
         

@@ -1,6 +1,5 @@
 opencv-python
 pandas
-augly[all]
 ffmpeg
 numpy
 torch

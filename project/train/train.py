@@ -16,7 +16,7 @@ class NNTrainer():
         self.start_learning_rate = 0.005
         self.num_epochs = num_epochs
         
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = torch.device("mps") if torch.backends.mps.is_available() else 'cpu'
     
     def train(self, model: nn.Module, path: str):
         '''
@@ -34,6 +34,7 @@ class NNTrainer():
                 labels = labels.to(self.device)
 
                 outputs = model(images)
+                # print(outputs.shape, labels.shape)
                 loss = criterion(outputs, labels)
 
                 optimizer.zero_grad()

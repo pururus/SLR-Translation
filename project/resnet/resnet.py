@@ -4,13 +4,11 @@ from typing import List
 if __name__ == "__main__":
     from basicblock import BasicBlock
     from bottleneck import BottleneckBlock
+    from project.basic_blocks.tovect import ToVect
 else:
     from resnet.basicblock import BasicBlock
     from resnet.bottleneck import BottleneckBlock
-
-class ToVect(nn.Module):
-  def forward(self, img):
-    return img.view(img.size(0), -1)
+    from basic_blocks.tovect import ToVect
 
 class ResNetF2G(nn.Module):
     '''

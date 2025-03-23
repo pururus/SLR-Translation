@@ -85,6 +85,10 @@ def create_clips_sliding(frames, num_frames=NUM_FRAMES, step=SAMPLING_STEP):
 
 
 def make_predictions_from_video(video_path, model_dir) -> list[str]:
+    '''
+    возвращает тензор, где в столбцы записаны векторы вероятностей принадлежности очередного окна видео к каждому жесту
+    
+    '''
 
     
     frames = prepare_and_load_video_frames(video_path)
@@ -111,23 +115,20 @@ def make_predictions_from_video(video_path, model_dir) -> list[str]:
     
     clips, clip_indices = create_clips_sliding(frames, NUM_FRAMES, SAMPLING_STEP)
     
-    predictions = []
-    # confidences = []
-    for i, clip in enumerate(clips):
+    prob_list = []
+    for clip in clips:
         # Добавляем размер батча: [1, 3, NUM_FRAMES, H, W]
         clip = clip.unsqueeze(0).to(device)
         with torch.no_grad():
             outputs = model(clip)
-            # Получаем индекс класса с максимальной вероятностью
-            probabilities = torch.softmax(outputs, dim=1)
+            probabilities = torch.softmax(outputs, dim=1)  # shape: [1, num_classes]
+            prob_vec = probabilities.squeeze(0)
 
-            conf, predicted_idx = torch.max(probabilities, 1)
-            predicted_label = idx2label[predicted_idx.item()]
-        predictions.append((predicted_label, round(conf.item(), 2)))
-        # confidences.append()
-        # start_idx, end_idx = clip_indices[i]
-    return predictions
-
+        prob_list.append(prob_vec)
+    
+    # Стекуем векторы вероятностей в тензор shape: [num_clips, num_classes]
+    probs_tensor = torch.stack(prob_list, dim=1)  # shape: [num_classes, num_clips]
+    return probs_tensor
 
 
 
@@ -139,7 +140,6 @@ res = make_predictions_from_video(
 )
 
 # print(clear_same_res(res))
-print(res)
 
     
 '''

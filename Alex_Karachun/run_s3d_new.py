@@ -9,30 +9,6 @@ from math import floor
 NUM_FRAMES = 14      # количество кадров в клипе
 SAMPLING_STEP = 3    # между соседними кадрами берём каждый третий
 
-# def prepare_and_load_video_frames(video_path):
-#     '''
-#     предобратка видео
-#     - размеры
-#         - если видео вертикальное, то сразу смять в 224x224
-#         - если видео горизонтальное
-#             - то образать в 1280x720
-#             - смять в 224x224
-#     - перевести в 24 fps
-#     '''
-#     cap = cv2.VideoCapture(video_path)
-#     if not cap.isOpened():
-#         raise ValueError(f"Не удалось открыть видео: {video_path}")
-    
-#     frames = []
-#     while True:
-#         ret, frame = cap.read()
-#         if not ret:
-#             break
-#         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-#         frames.append(frame_rgb)
-#     cap.release()
-#     return frames
-
 
 def prepare_and_load_video_frames(video_path):
     """
@@ -136,32 +112,30 @@ def make_predictions_from_video(video_path, model_dir) -> list[str]:
     clips, clip_indices = create_clips_sliding(frames, NUM_FRAMES, SAMPLING_STEP)
     
     predictions = []
+    # confidences = []
     for i, clip in enumerate(clips):
         # Добавляем размер батча: [1, 3, NUM_FRAMES, H, W]
         clip = clip.unsqueeze(0).to(device)
         with torch.no_grad():
             outputs = model(clip)
             # Получаем индекс класса с максимальной вероятностью
-            _, predicted_idx = torch.max(outputs, 1)
+            probabilities = torch.softmax(outputs, dim=1)
+
+            conf, predicted_idx = torch.max(probabilities, 1)
             predicted_label = idx2label[predicted_idx.item()]
-        predictions.append(predicted_label)
-        start_idx, end_idx = clip_indices[i]
+        predictions.append((predicted_label, round(conf.item(), 2)))
+        # confidences.append()
+        # start_idx, end_idx = clip_indices[i]
     return predictions
 
 
-def clear_same_res(a):
-    res = [a[0]]
-    for i in range(1, len(a)):
-        if res[-1] != a[i]:
-            res.append(a[i])
-    return res
 
 
 res = make_predictions_from_video(
     # video_path='../slovo_full/testing_videos/вы_хорошо_работать.mov', 
     video_path='../slovo_full/testing_videos/я_дом_идти.mov', 
     # video_path='../slovo_full/testing_videos/я_тебе_еда_делать.mov', 
-    model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_1_epoch'
+    model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
 )
 
 # print(clear_same_res(res))
@@ -201,7 +175,7 @@ print(res)
 - 1, 2, 4, 7 эпохи булшит
 - оставлять для перевода только слова, появившиеся n раз подряд (прикинуть эту n)
 
-
+[('no_event', 0.97), ('no_event', 0.96), ('no_event', 0.97), ('no_event', 0.96), ('я', 0.62), ('я', 0.54), ('no_event', 0.57), ('я', 0.54), ('no_event', 0.46), ('я', 0.65), ('я', 0.58), ('я', 0.6), ('сорок', 0.84), ('сорок', 0.36), ('я', 0.36), ('следовало', 0.62), ('я', 0.31), ('сорок', 0.29), ('сорок', 0.55), ('самопроверка', 0.19), ('испуганный', 0.33), ('самопроверка', 0.84), ('самопроверка', 0.6), ('самопроверка', 0.96), ('самопроверка', 0.99), ('самопроверка', 0.99), ('самопроверка', 0.97), ('самопроверка', 0.98), ('самопроверка', 0.56), ('откусывание', 0.89), ('откусывание', 0.86), ('откусывание', 0.63), ('дом', 0.82), ('дом', 0.85), ('дом', 0.99), ('дом', 0.87), ('дом', 0.9), ('дом', 0.99), ('дом', 1.0), ('дом', 1.0), ('дом', 1.0), ('дом', 1.0), ('дом', 1.0), ('дом', 1.0), ('дом', 1.0), ('дом', 1.0), ('дом', 1.0), ('дом', 1.0), ('дом', 0.99), ('дом', 1.0), ('дом', 1.0), ('дом', 1.0), ('дом', 0.99), ('дом', 0.98), ('дом', 0.84), ('дом', 0.98), ('дом', 0.99), ('дом', 0.71), ('дом', 0.85), ('дом', 0.72), ('дом', 0.59), ('кроме', 0.48), ('поднос', 0.93), ('поднос', 0.92), ('поднос', 0.94), ('поднос', 0.74), ('поднос', 0.98), ('поднос', 0.98), ('поднос', 0.95), ('поднос', 0.96), ('поднос', 0.93), ('поднос', 0.5), ('поднос', 0.89), ('поднос', 0.92), ('поднос', 0.51), ('поднос', 0.73), ('им', 0.49), ('прийти', 0.4), ('Лопата', 0.51), ('Соль', 0.7), ('Соль', 0.58), ('Лопата', 0.36), ('Соль', 0.38), ('идти', 0.49), ('поднос', 0.48), ('Соль', 0.51), ('Лопата', 0.43), ('поднос', 0.71), ('идти', 0.37), ('поднос', 0.93), ('поднос', 0.87), ('поднос', 0.41), ('поднос', 0.87), ('поднос', 0.85), ('поднос', 0.38), ('поднос', 0.41), ('Соль', 0.44), ('следовало', 0.48), ('Соль', 0.35), ('верх', 0.51), ('верх', 0.58), ('верх', 0.69), ('верх', 0.85), ('верх', 0.81), ('верх', 0.93), ('верх', 0.65), ('no_event', 0.52), ('no_event', 0.59), ('no_event', 0.9), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0), ('no_event', 1.0)]
 
 
 '''

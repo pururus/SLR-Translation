@@ -100,18 +100,10 @@ class GigaChat:
     async def parse_translation(self, translation: str):
         message = f'''
         Ты профессиональный переводчик с русского жестового языка на русский естественный язык.
-        Тебе нужно привести к естественному виду глоссовую расшифровку текста на РЖЯ: {translation}.
+        Тебе нужно привести к естественному виду глоссовую расшифровку текста на РЖЯ, а также убрать из нее неправильно распознанные глосы, которые плохо подходят по смыслу: {translation}.
         Напиши только перевод.
         '''
         
         response = await self.request(message)
         if response and 'choices' in response:
             return response['choices'][0]['message']['content']
-    
-async def main():
-    await gpt.check_token()
-    resp = await gpt.parse_translation("Я ехать назад Париж год назад")
-    print(resp)
-    
-gpt = GigaChat()
-asyncio.run(main())

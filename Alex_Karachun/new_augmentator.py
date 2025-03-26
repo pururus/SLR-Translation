@@ -143,15 +143,15 @@ def process_video(args) -> pd.DataFrame:
             
             # Случайные параметры для аугментации:
             will_mirror = random.choice([True, False])
-            k_for_zooming = random.uniform(1, 1.2)
+            k_for_zooming = random.uniform(1, 1.3)
             cropping_left_down = [int(random.uniform(0, clip.size[0] * 0.05)),
                                 int(random.uniform(0, clip.size[1] * 0.05))]
             cropping_right_upper = [clip.size[0] - int(random.uniform(0, clip.size[0] * 0.05)),
                                     clip.size[1] - int(random.uniform(0, clip.size[1] * 0.05))]
             new_speed = random.uniform(0.8, 1.5)
-            new_britness = random.uniform(0.5, 1.4)
-            bitrate = str(random.choice(range(700, 5000, 100))) + 'k'
-            noize_k = random.uniform(0, 20)
+            new_britness = random.uniform(0.5, 1.6)
+            bitrate = str(random.choice(range(600, 6000, 10))) + 'k'
+            noize_k = random.uniform(0, 30)
             
             
 
@@ -221,7 +221,7 @@ def duper(dataset_dir_path: str,
           original_annotations_file_path: str,
           result_annotations_file_path: str,
           multiplyer: int,
-          expected_size=[256, 144],
+          expected_size=[224, 224],
           n_processes: int = 4) -> None:
     '''
     Для каждого видео из датасета:
@@ -234,8 +234,9 @@ def duper(dataset_dir_path: str,
     data = pd.read_csv(original_annotations_file_path, sep='\t')
     
     # Фильтрация по разрешению:
-    allowed_res = [(1920, 1080), (1280, 720), (1920, 960)]
+    allowed_res = [(1920, 1080), (1280, 720), (1920, 960), (224, 224)]
     data = data[data.apply(lambda row: (row['height'], row['width']) in allowed_res, axis=1)]
+
     
     tasks = []
     for i, row in data.iterrows():
@@ -256,11 +257,13 @@ def duper(dataset_dir_path: str,
     results = process_map(process_video, tasks, max_workers=n_processes, chunksize=10)
     
     new_data = pd.concat(results, ignore_index=True)
-    # new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w")
+    new_data = new_data.sample(frac=1).reset_index(drop=True)
+
     if os.path.exists(result_annotations_file_path) and os.stat(result_annotations_file_path).st_size > 0:
         new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="a", header=False)
     else:
         new_data.to_csv(result_annotations_file_path, sep="\t", index=False, mode="w", header=True)
+
 
 if __name__ == '__main__':
     import multiprocessing as mp
@@ -269,24 +272,24 @@ if __name__ == '__main__':
     
     t1 = time.time()
     workers_mult = 1/3
-    multiplyer = 1
+    multiplyer = 4
     duper(
         dataset_dir_path='../slovo_full/original/',
-        result_dir='../slovo_full/augmented/',
-        original_annotations_file_path='../slovo_full/annotations_full.csv',
-        result_annotations_file_path='../slovo_full/augmented_annotations.csv',
+        result_dir='../slovo_full/subdataset_100/augmented_videos/',
+        original_annotations_file_path='../slovo_full/subdataset_100/annotations_100_train.csv',
+        result_annotations_file_path='../slovo_full/subdataset_100/augmented_annotations_100_train.csv',
         multiplyer=multiplyer,
         expected_size=[224, 224],  # высота, ширина
         n_processes=int(mp.cpu_count() * workers_mult)
         
         
-        # dataset_dir_path='Alex_Karachun/to_augment/',
-        # result_dir='Alex_Karachun/augmented/',
-        # original_annotations_file_path='Alex_Karachun/to_augment/annotations.csv',
-        # result_annotations_file_path='Alex_Karachun/augmented/pupu.csv',
-        # multiplyer=3,
+        # dataset_dir_path='../slovo_full/original/',
+        # result_dir='../slovo_full/subdataset_100/augmented_videos/',
+        # original_annotations_file_path='../slovo_full/subdataset_100/annotations_100_evaluate.csv',
+        # result_annotations_file_path='../slovo_full/subdataset_100/augmented_annotations_100_evaluate.csv',
+        # multiplyer=multiplyer,
         # expected_size=[224, 224],  # высота, ширина
-        # n_processes=mp.cpu_count()
+        # n_processes=int(mp.cpu_count() * workers_mult)
     )
     t2 = time.time()
     

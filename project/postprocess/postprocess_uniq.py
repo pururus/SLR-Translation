@@ -1,5 +1,6 @@
 from torch import tensor
 import torch
+import torch.nn.functional as F
 
 class PreprocessUniq():
     @classmethod
@@ -14,8 +15,10 @@ class PreprocessUniq():
         '''
         Checks that the gloss at index in glosses is similar to the next one or the one after the next
         '''
-        return ((index + 1 < glosses.shape[0] and glosses[index].item() == glosses[index + 1].item()) or
-                (index + 2 < glosses.shape[0] and glosses[index].item() == glosses[index + 2].item()))
+        return ((index + 1 < glosses.shape[0] and glosses[index].item() == glosses[index + 1].item()) and
+                (index + 2 < glosses.shape[0] and glosses[index].item() == glosses[index + 2].item()) and
+                (index + 3 < glosses.shape[0] and glosses[index].item() == glosses[index + 3].item())and
+                (index + 4 < glosses.shape[0] and glosses[index].item() == glosses[index + 4].item()))
 
     def preprocess(self, glosses: tensor):
         '''
@@ -23,7 +26,9 @@ class PreprocessUniq():
         Shortens the gloss sequence, leaves in the sequence only the glosses, which are long enough
         :param: glosses' tensor with shape m x n
         '''
+        glosses = F.softmax(glosses, dim=0)
         glosses = torch.argmax(glosses, dim=0)
+        print(glosses)
         processed_glosses = []
         for i in range(glosses.shape[0]):
             if PreprocessUniq.is_new(i, glosses, processed_glosses) and PreprocessUniq.is_not_mistake(i, glosses):

@@ -6,7 +6,6 @@ import numpy as np
 from math import floor
 
 
-NUM_FRAMES = 14      # количество кадров в клипе
 SAMPLING_STEP = 3    # между соседними кадрами берём каждый третий
 
 
@@ -60,7 +59,7 @@ def prepare_and_load_video_frames(video_path):
     return frames
 
 
-def create_clips_sliding(frames, num_frames=NUM_FRAMES, step=SAMPLING_STEP):
+def create_clips_sliding(frames, num_frames, step=SAMPLING_STEP):
     clips = []
     clip_indices = [] 
     for i in range(len(frames)):
@@ -85,18 +84,17 @@ def create_clips_sliding(frames, num_frames=NUM_FRAMES, step=SAMPLING_STEP):
 
 
 def make_predictions_from_video(video_path, model_dir) -> list[str]:
+    # предсказвыаем по окну на 14 кадров
     '''
     возвращает тензор, где в столбцы записаны векторы вероятностей принадлежности очередного окна видео к каждому жесту
     
     '''
-
     
+    NUM_FRAMES = 14      # количество кадров в клипе
+
     frames = prepare_and_load_video_frames(video_path)
-
-    
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
     
     model_path = f"{model_dir}/s3d_finetuned.pth"
     label2idx_path = f"{model_dir}/label2idx.json"
@@ -113,9 +111,10 @@ def make_predictions_from_video(video_path, model_dir) -> list[str]:
     model.eval()
     
     
-    clips, clip_indices = create_clips_sliding(frames, NUM_FRAMES, SAMPLING_STEP)
+    clips, clip_indices = create_clips_sliding(frames, num_frames=NUM_FRAMES, step=SAMPLING_STEP)
     
     prob_list = []
+    predictions = []
     for clip in clips:
         # Добавляем размер батча: [1, 3, NUM_FRAMES, H, W]
         clip = clip.unsqueeze(0).to(device)
@@ -123,21 +122,92 @@ def make_predictions_from_video(video_path, model_dir) -> list[str]:
             outputs = model(clip)
             probabilities = torch.softmax(outputs, dim=1)  # shape: [1, num_classes]
             prob_vec = probabilities.squeeze(0)
-
+            
+            pred_idx = torch.argmax(prob_vec).item()
+            pred_label = idx2label[pred_idx]
+            predictions.append(pred_label)
+            
         prob_list.append(prob_vec)
     
     # Стекуем векторы вероятностей в тензор shape: [num_clips, num_classes]
     probs_tensor = torch.stack(prob_list, dim=1)  # shape: [num_classes, num_clips]
     return probs_tensor
+    # return probs_tensor, predictions
 
 
 
-res = make_predictions_from_video(
+def make_predictions_from_video_7_frames(video_path, model_dir) -> list[str]:
+    '''
+    возвращает тензор, где в столбцы записаны векторы вероятностей принадлежности очередного окна видео к каждому жесту
+
+    '''
+    # предсказвыаем по окну на 14 кадров
+
+    
+    NUM_FRAMES = 7      # количество кадров в клипе
+
+    frames = prepare_and_load_video_frames(video_path)
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    model_path = f"{model_dir}/s3d_finetuned.pth"
+    label2idx_path = f"{model_dir}/label2idx.json"
+    
+    
+    with open(label2idx_path, "r", encoding="utf-8") as f:
+        label2idx = json.load(f)
+    num_classes = len(label2idx)
+    idx2label = {v: k for k, v in label2idx.items()}
+
+    model = s3d(weights=None, num_classes=num_classes)
+    model.avgpool = torch.nn.AvgPool3d(kernel_size=(1, 7, 7), stride=1)
+
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.to(device)
+    model.eval()
+    
+    
+    clips, clip_indices = create_clips_sliding(frames, num_frames=NUM_FRAMES, step=SAMPLING_STEP)
+    
+    prob_list = []
+    predictions = []
+
+    for clip in clips:
+        # Добавляем размер батча: [1, 3, NUM_FRAMES, H, W]
+        clip = clip.unsqueeze(0).to(device)
+        with torch.no_grad():
+            outputs = model(clip)
+            probabilities = torch.softmax(outputs, dim=1)  # shape: [1, num_classes]
+            prob_vec = probabilities.squeeze(0)
+            
+            pred_idx = torch.argmax(prob_vec).item()
+            pred_label = idx2label[pred_idx]
+            predictions.append(pred_label)
+        prob_list.append(prob_vec)
+    
+    # Стекуем векторы вероятностей в тензор shape: [num_clips, num_classes]
+    probs_tensor = torch.stack(prob_list, dim=1)  # shape: [num_classes, num_clips]
+    return probs_tensor
+    # return probs_tensor, predictions
+
+
+# res = make_predictions_from_video_14_frames(
+#     # video_path='../slovo_full/testing_videos/вы_хорошо_работать.mov', 
+#     video_path='../slovo_full/testing_videos/я_дом_идти.mov', 
+#     # video_path='../slovo_full/testing_videos/я_тебе_еда_делать.mov', 
+#     # model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
+# )
+
+res = make_predictions_from_video_7_frames(
     # video_path='../slovo_full/testing_videos/вы_хорошо_работать.mov', 
-    video_path='../slovo_full/testing_videos/я_дом_идти.mov', 
-    # video_path='../slovo_full/testing_videos/я_тебе_еда_делать.mov', 
-    model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
+    # video_path='../slovo_full/testing_videos/я_дом_идти.mov', 
+    video_path='../slovo_full/testing_videos/я_тебе_еда_делать.mov', 
+
+    model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_100_videos_10_epochs_done_7_frames/s3d_1000_gestures_100_videos_7_epoch'
+    # model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
 )
+
+print(res)
 
 # print(clear_same_res(res))
 

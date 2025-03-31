@@ -16,8 +16,8 @@ class PreprocessUniq():
         '''
         Checks that the gloss at index in glosses is similar to the next one or the one after the next
         '''
-        return ((index + 1 < glosses.shape[0] and glosses[index].item() == glosses[index + 1].item()) and 1
-                # (index + 2 < glosses.shape[0] and glosses[index].item() == glosses[index + 2].item()) and 1
+        return ((index + 1 < glosses.shape[0] and glosses[index].item() == glosses[index + 1].item()) and
+                (index + 2 < glosses.shape[0] and glosses[index].item() == glosses[index + 2].item()) and 1
                 # (index + 3 < glosses.shape[0] and glosses[index].item() == glosses[index + 3].item())and
                 # (index + 4 < glosses.shape[0] and glosses[index].item() == glosses[index + 4].item())
                 )
@@ -36,7 +36,7 @@ class PreprocessUniq():
         glosses = []
         n = 30
         for i in range(len(t) - n + 1):
-            if t[i] == 4 and (t[i + 1] != 4 or t[i + 2] != 4 ):
+            # if t[i] == 4 and (t[i + 1] != 4 or t[i + 2] != 4 ):
                 slice_t = t[i:i+n]  # Получаем срез
                 counter = Counter(slice_t)  # Подсчитываем частоту элементов
                 most_common_element, _ = counter.most_common(1)[0]  # Получаем самый частый элемент

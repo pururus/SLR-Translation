@@ -40,7 +40,7 @@ async def process_video(video_path, model_dir=model_dir2, model=None, chat=None,
     if len(text):
         return await chat.parse_translation(' '.join(text))
 
-    return "Не удалось распознать предложение. Убедитесь, что слова хороо видно в кадре и попробуйте еще раз)"
+    return "Не удалось распознать предложение. Убедитесь, что слова хорошо видно в кадре и попробуйте еще раз)"
 
 if __name__ == "__main__":
     async def main():

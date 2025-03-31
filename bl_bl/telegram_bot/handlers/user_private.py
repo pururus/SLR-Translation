@@ -1,4 +1,5 @@
 import logging
+import os
 
 from aiogram import Router, F, Bot
 from aiogram.types import Message
@@ -20,10 +21,10 @@ async def start_handler(message: Message):
 @user_private_router.message(Command("help"))
 async def help_handler(message: Message):
     await message.answer("""
-                         Для перевода вам нужно отправить видео удволетворяющее следующим требованиям:\n
-                         1. Видео должено быть горизонтальным.\n
-                         2. На видео должен находиться один человек на расстоянии 1-1.5 метра от экрана, расположеный по середине и смотрящий в экран.\n
-                         3. Все жесты должны быть отчетливо видны.
+                         Для перевода вам нужно отправить видео удволетворяющее следующим требованиям:
+                            1. Видео должено быть горизонтальным.
+                            2. На видео должен находиться один человек на расстоянии 1-1.5 метра от экрана, расположеный по середине и смотрящий в экран.
+                            3. Все жесты должны быть отчетливо видны.
                          """)
 
 @user_private_router.message(Command("info"))
@@ -60,8 +61,11 @@ async def video_handler(message: Message, bot: Bot, client: WorkWithDB):
         file_path = file_info.file_path
 
         logging.info(f"Download file with path: {file_path}")
+        
         await bot.download_file(file_path=file_path, destination=f"{file_id}.mp4")
         await message.reply(await process_video(f"{file_id}.mp4", 'Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'))
+        if os.path.exists(f"{file_id}.mp4"):
+            os.remove(f"{file_id}.mp4")
 
 @user_private_router.message()
 async def other_handler(message: Message):

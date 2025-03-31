@@ -60,12 +60,8 @@ async def video_handler(message: Message, bot: Bot, client: WorkWithDB):
         file_path = file_info.file_path
 
         logging.info(f"Download file with path: {file_path}")
-        video_data = await bot.download_file(file_path=file_path, destination=f"/Users/svatoslavpolonskiy/Documents/Deep_python/SLR-Translation/2b11551b-c47f-4493-9331-b7f8fd1695f8.mp4")
-        """
-            Мб надо в файл качать.
-        """
-
-        await message.reply(await process_video(f"/Users/svatoslavpolonskiy/Documents/Deep_python/SLR-Translation/2b11551b-c47f-4493-9331-b7f8fd1695f8.mp4", 'Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'))
+        await bot.download_file(file_path=file_path, destination=f"{file_id}.mp4")
+        await message.reply(await process_video(f"{file_id}.mp4", 'Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'))
 
 @user_private_router.message()
 async def other_handler(message: Message):

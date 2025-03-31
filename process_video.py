@@ -1,6 +1,6 @@
-from Alex_Karachun.run_s3d_new import make_predictions_from_video
+from Alex_Karachun.run_s3d_new import make_predictions_from_video, make_predictions_from_video_7_frames
 model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
-
+model_dir2="Alex_Karachun/trained_models/s3d_1000_gestures_100_videos_10_epochs_done_7_frames/s3d_1000_gestures_100_videos_7_epoch"
 from project.gigachat.gigachat import GigaChat
 from project.postprocess.postprocess_uniq import PreprocessUniq
 import json
@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import asyncio
 
-async def process_video(video_path, model_dir=model_dir, model=None, chat=None, preprocessor=None, labels=None):
+async def process_video(video_path, model_dir=model_dir2, model=None, chat=None, preprocessor=None, labels=None):
     if not chat:
         chat = GigaChat()
         await chat.check_token()
@@ -25,7 +25,8 @@ async def process_video(video_path, model_dir=model_dir, model=None, chat=None, 
         num_classes = len(label2idx)
         idx2label = {v: k for k, v in label2idx.items()}
     
-    res = make_predictions_from_video(video_path, model_dir, model)
+    # res = make_predictions_from_video(video_path, model_dir, model)
+    res=make_predictions_from_video_7_frames(video_path, model_dir=model_dir2)
     res = preprocessor.preprocess(res)
     
     text = []

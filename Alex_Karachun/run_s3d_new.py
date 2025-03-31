@@ -209,6 +209,14 @@ if __name__ == "__main__":
     )
     
     print(res)
+# )
+    # video_path='../slovo_full/testing_videos/вы_хорошо_работать.mov', 
+    # video_path='../slovo_full/testing_videos/я_дом_идти.mov', 
+    # video_path='../slovo_full/testing_videos/я_тебе_еда_делать.mov', 
+
+    # model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_100_videos_10_epochs_done_7_frames/s3d_1000_gestures_100_videos_7_epoch'
+    # model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
+# )
 
 # print(clear_same_res(res))
 

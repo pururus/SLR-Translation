@@ -29,7 +29,13 @@ class NNTrainer():
         total_step = len(self.train_loader)
 
         for epoch in range(self.num_epochs):
+            print("training")
             for i, (images, labels) in enumerate(self.train_loader):
+                
+                if (i % 1000 == 0):
+                    print(i)
+                
+                images = images.to(torch.float32)
                 images = images.to(self.device)
                 labels = labels.to(self.device)
 
@@ -42,12 +48,13 @@ class NNTrainer():
                 optimizer.step()
 
             print ('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
-                            .format(epoch+1, self.num_epochs, i+1, total_step, loss.item()))
+                            .format(epoch+1, self.num_epochs, i + 1, total_step, loss.item()))
 
             with torch.no_grad():
                 correct = 0
                 total = 0
                 for images, labels in self.valid_loader:
+                    images = images.to(torch.float32)
                     images = images.to(self.device)
                     labels = labels.to(self.device)
                     outputs = model(images)

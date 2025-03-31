@@ -41,7 +41,8 @@ async def process_video(video_path, model_dir=model_dir, model=None, chat=None, 
 
     return "Не удалось распознать предложение. Убедитесь, что слова хороо видно в кадре и попробуйте еще раз)"
 
-async def main():
-    print(await process_video('/Users/svatoslavpolonskiy/Documents/Deep_python/SLR-Translation/IMG_0211.MOV'))
+if __name__ == "__main__":
+    async def main():
+        print(await process_video('/Users/svatoslavpolonskiy/Documents/Deep_python/SLR-Translation/IMG_0208.MOV'))
 
-asyncio.run(main())
+    asyncio.run(main())

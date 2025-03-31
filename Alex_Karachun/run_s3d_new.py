@@ -84,7 +84,7 @@ def create_clips_sliding(frames, num_frames=NUM_FRAMES, step=SAMPLING_STEP):
     return clips, clip_indices
 
 
-def make_predictions_from_video(video_path, model_dir) -> list[str]:
+def make_predictions_from_video(video_path, model_dir, model=None) -> list[str]:
     '''
     возвращает тензор, где в столбцы записаны векторы вероятностей принадлежности очередного окна видео к каждому жесту
     
@@ -97,20 +97,20 @@ def make_predictions_from_video(video_path, model_dir) -> list[str]:
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    
-    model_path = f"{model_dir}/s3d_finetuned.pth"
-    label2idx_path = f"{model_dir}/label2idx.json"
-    
-    
-    with open(label2idx_path, "r", encoding="utf-8") as f:
-        label2idx = json.load(f)
-    num_classes = len(label2idx)
-    idx2label = {v: k for k, v in label2idx.items()}
+    if not model:
+        model_path = f"{model_dir}/s3d_finetuned.pth"
+        label2idx_path = f"{model_dir}/label2idx.json"
+        
+        
+        with open(label2idx_path, "r", encoding="utf-8") as f:
+            label2idx = json.load(f)
+        num_classes = len(label2idx)
+        idx2label = {v: k for k, v in label2idx.items()}
 
-    model = s3d(weights=None, num_classes=num_classes)
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    model.to(device)
-    model.eval()
+        model = s3d(weights=None, num_classes=num_classes)
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.to(device)
+        model.eval()
     
     
     clips, clip_indices = create_clips_sliding(frames, NUM_FRAMES, SAMPLING_STEP)
@@ -134,12 +134,12 @@ def make_predictions_from_video(video_path, model_dir) -> list[str]:
 
 res = make_predictions_from_video(
     # video_path='../slovo_full/testing_videos/вы_хорошо_работать.mov', 
-    video_path='../slovo_full/testing_videos/я_дом_идти.mov', 
+    video_path='/Users/svatoslavpolonskiy/Documents/Deep_python/SLR-Translation/Alex_Karachun/5a6c5f85-1d50-4249-a94f-f9812bb07c9b.mp4', 
     # video_path='../slovo_full/testing_videos/я_тебе_еда_делать.mov', 
     model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
 )
 
-# print(clear_same_res(res))
+# print((res))
 
     
 '''

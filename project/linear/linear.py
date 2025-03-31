@@ -12,7 +12,7 @@ class Landmark2G(nn.Module):
         
         self.fc1 = nn.Sequential(
             nn.Dropout(0.5),
-            nn.Linear(121, num_classes * 100),
+            nn.Linear(945, num_classes * 100),
             nn.ReLU())
         self.fc2= nn.Sequential(
             nn.Linear(num_classes * 100, num_classes))

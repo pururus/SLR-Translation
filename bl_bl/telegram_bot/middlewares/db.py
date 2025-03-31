@@ -4,10 +4,10 @@ from aiogram import BaseMiddleware
 from aiogram.types import Message, TelegramObject
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
-import database.engine 
+import bl_bl.telegram_bot.database.engine 
 
 class DataBaseSession(BaseMiddleware):
-    def __init__(self, client: database.engine.WorkWithDB):
+    def __init__(self, client: bl_bl.telegram_bot.database.engine.WorkWithDB):
         self.client = client
 
     async def __call__(

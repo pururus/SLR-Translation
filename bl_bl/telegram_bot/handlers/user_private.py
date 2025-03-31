@@ -4,10 +4,11 @@ from aiogram import Router, F, Bot
 from aiogram.types import Message
 from aiogram.filters import Command
 
-from common.neuro import slr_translator
-from database.engine import WorkWithDB
-from filters.chat_types import ChatTypeFilter
+from bl_bl.telegram_bot.common.neuro import slr_translator
+from bl_bl.telegram_bot.database.engine import WorkWithDB
+from bl_bl.telegram_bot.filters.chat_types import ChatTypeFilter
 
+from process_video import process_video
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(["private"]))
@@ -59,12 +60,12 @@ async def video_handler(message: Message, bot: Bot, client: WorkWithDB):
         file_path = file_info.file_path
 
         logging.info(f"Download file with path: {file_path}")
-        video_data = await bot.download_file(file_path=file_path)
+        video_data = await bot.download_file(file_path=file_path, destination=f"/Users/svatoslavpolonskiy/Documents/Deep_python/SLR-Translation/2b11551b-c47f-4493-9331-b7f8fd1695f8.mp4")
         """
             Мб надо в файл качать.
         """
 
-        await message.reply(slr_translator(video_data))
+        await message.reply(await process_video(f"/Users/svatoslavpolonskiy/Documents/Deep_python/SLR-Translation/2b11551b-c47f-4493-9331-b7f8fd1695f8.mp4", 'Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'))
 
 @user_private_router.message()
 async def other_handler(message: Message):

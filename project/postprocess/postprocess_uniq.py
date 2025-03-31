@@ -1,6 +1,7 @@
 from torch import tensor
 import torch
 import torch.nn.functional as F
+from collections import Counter
 
 class PreprocessUniq():
     @classmethod
@@ -15,10 +16,11 @@ class PreprocessUniq():
         '''
         Checks that the gloss at index in glosses is similar to the next one or the one after the next
         '''
-        return ((index + 1 < glosses.shape[0] and glosses[index].item() == glosses[index + 1].item()) and
-                (index + 2 < glosses.shape[0] and glosses[index].item() == glosses[index + 2].item()) and
-                (index + 3 < glosses.shape[0] and glosses[index].item() == glosses[index + 3].item())and
-                (index + 4 < glosses.shape[0] and glosses[index].item() == glosses[index + 4].item()))
+        return ((index + 1 < glosses.shape[0] and glosses[index].item() == glosses[index + 1].item()) and 1
+                # (index + 2 < glosses.shape[0] and glosses[index].item() == glosses[index + 2].item()) and 1
+                # (index + 3 < glosses.shape[0] and glosses[index].item() == glosses[index + 3].item())and
+                # (index + 4 < glosses.shape[0] and glosses[index].item() == glosses[index + 4].item())
+                )
 
     def preprocess(self, glosses: tensor):
         '''
@@ -28,6 +30,20 @@ class PreprocessUniq():
         '''
         glosses = F.softmax(glosses, dim=0)
         glosses = torch.argmax(glosses, dim=0)
+        print(glosses)
+        
+        t = [glosses[i].item() for i in range(glosses.shape[0])]
+        glosses = []
+        n = 30
+        for i in range(len(t) - n + 1):
+            if t[i] == 4 and (t[i + 1] != 4 or t[i + 2] != 4 ):
+                slice_t = t[i:i+n]  # Получаем срез
+                counter = Counter(slice_t)  # Подсчитываем частоту элементов
+                most_common_element, _ = counter.most_common(1)[0]  # Получаем самый частый элемент
+                glosses.append(most_common_element)  # Добавляем его в новый список
+
+        
+        glosses = tensor(glosses)
         print(glosses)
         processed_glosses = []
         for i in range(glosses.shape[0]):

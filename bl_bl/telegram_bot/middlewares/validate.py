@@ -3,7 +3,7 @@ from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware
 from aiogram.types import Message, TelegramObject
 
-from common.utils import is_subscribed
+from bl_bl.telegram_bot.common.utils import is_subscribed
 
 class Validator(BaseMiddleware):
     def __init__(self, channel_id: str):

@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from database.models import Base, User
+from bl_bl.telegram_bot.database.models import Base, User
 
 
 class WorkWithDB:

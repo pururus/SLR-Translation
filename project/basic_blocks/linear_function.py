@@ -11,4 +11,8 @@ class LinearFunction(nn.Module):
         self.matrix = nn.Parameter(torch.stack([torch.eye(n) for _ in range(batch_size)]))
     
     def forward(self, x):
-        return self.matrix @ x
+        try:
+            return self.matrix @ x
+        except:
+            return self.matrix[:x.shape[0]] @ x
+

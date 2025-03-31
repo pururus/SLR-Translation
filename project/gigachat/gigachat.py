@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import asyncio
 import aiohttp
-from credentials import cal_credentials
+from project.gigachat.credentials import cal_credentials
 
 import logging
 from typing import Dict, Optional
@@ -100,7 +100,7 @@ class GigaChat:
     async def parse_translation(self, translation: str):
         message = f'''
         Ты профессиональный переводчик с русского жестового языка на русский естественный язык.
-        Тебе нужно привести к естественному виду глоссовую расшифровку текста на РЖЯ, а также убрать из нее неправильно распознанные глосы, которые плохо подходят по смыслу: {translation}.
+        Тебе нужно привести к естественному виду глоссовую расшифровку текста на РЖЯ: {translation}.
         Напиши только перевод.
         '''
         

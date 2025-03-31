@@ -2,12 +2,16 @@ import requests
 import base64
 import uuid
 import json
+import os
 
 from pathlib import Path
 import asyncio
 import aiohttp
-from project.gigachat.credentials import cal_credentials
 
+from dotenv import find_dotenv, load_dotenv
+
+load_dotenv(find_dotenv())
+cal_credentials = os.getenv('cal_credentials')
 import logging
 from typing import Dict, Optional
 

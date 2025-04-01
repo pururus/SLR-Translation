@@ -63,10 +63,10 @@ class WorkWithDB:
         async with self.session() as session:
             user = await session.get(User, tg_id)
             if user:
-                if user.last_request.date() != datetime.now().date():
+                if user.last_update.date() != datetime.now().date():
                     user.requests_used = 0
                     user.duration_used = 0
-                    user.last_request = datetime.now()
+                    user.last_update = datetime.now()
                     await session.commit()
     
     async def get_user(self, tg_id) -> User | None:

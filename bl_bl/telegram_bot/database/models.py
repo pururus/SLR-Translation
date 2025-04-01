@@ -14,7 +14,7 @@ class User(Base):
     requests_used: Mapped[int] = mapped_column(default=0, nullable=False)
     duration_used: Mapped[int] = mapped_column(default=0, nullable=False)
 
-    requests_max: Mapped[int] = mapped_column(default=10000, nullable=False)
-    duration_max: Mapped[int] = mapped_column(default=60000, nullable=False)
+    requests_max: Mapped[int] = mapped_column(default=10, nullable=False)
+    duration_max: Mapped[int] = mapped_column(default=60, nullable=False)
 
-    last_request: Mapped[DateTime] = mapped_column(DateTime, default=func.now(), nullable=False)
+    last_update: Mapped[DateTime] = mapped_column(DateTime, default=func.now(), nullable=False)

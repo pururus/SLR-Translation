@@ -17,7 +17,7 @@ class PreprocessUniq():
         Checks that the gloss at index in glosses is similar to the next one or the one after the next
         '''
         return ((index + 1 < glosses.shape[0] and glosses[index].item() == glosses[index + 1].item()) and
-                (index + 2 < glosses.shape[0] and glosses[index].item() == glosses[index + 2].item()) and 1
+                (index + 6 < glosses.shape[0] and glosses[index].item() == glosses[index + 6].item()) and 1
                 # (index + 3 < glosses.shape[0] and glosses[index].item() == glosses[index + 3].item())and
                 # (index + 4 < glosses.shape[0] and glosses[index].item() == glosses[index + 4].item())
                 )
@@ -35,12 +35,19 @@ class PreprocessUniq():
         t = [glosses[i].item() for i in range(glosses.shape[0])]
         glosses = []
         n = 30
-        for i in range(len(t) - n + 1):
+        start = t.index(4)
+        if not start:
+            start = 5
+        for i in range(start, len(t) - n + 1):
             # if t[i] == 4 and (t[i + 1] != 4 or t[i + 2] != 4 ):
                 slice_t = t[i:i+n]  # Получаем срез
-                counter = Counter(slice_t)  # Подсчитываем частоту элементов
-                most_common_element, _ = counter.most_common(1)[0]  # Получаем самый частый элемент
-                glosses.append(most_common_element)  # Добавляем его в новый список
+                counter = Counter(slice_t)
+                most_common_elements = counter.most_common(2)
+                mc = most_common_elements[0][0]
+                if most_common_elements and len(most_common_elements) == 2 and most_common_elements[0][0] == 4:
+                    mc = most_common_elements[1][0]
+
+                glosses.append(mc)  # Добавляем его в новый список
 
         
         glosses = tensor(glosses)

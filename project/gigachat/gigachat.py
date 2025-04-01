@@ -15,7 +15,7 @@ logging.captureWarnings(True)
 
 class GigaChat:
     _token = None
-    _model = "GigaChat-2"
+    _model = "GigaChat-2-Max"
     _url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
     async def get_token(self, auth_token, scope='GIGACHAT_API_PERS'):
@@ -99,9 +99,10 @@ class GigaChat:
     
     async def parse_translation(self, translation: str):
         message = f'''
-        Ты профессиональный переводчик с русского жестового языка на русский естественный язык.
+        Ты профессиональный переводчик с русского жестового языка на русский естественный язык. Напиши только перевод.
         Тебе нужно привести к естественному виду глоссовую расшифровку текста на РЖЯ: {translation}.
-        Напиши только перевод.
+        Напиши только перевод. Можешь пропускать слова, не подходящие по контексту.
+        ВЕРНИ ТОЛЬКО ПЕРЕВОД, НЕ ПИШИ РАССУЖДЕНИЯ И ПРЕДПОЛОЖЕНИЯ
         '''
         
         response = await self.request(message)

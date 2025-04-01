@@ -199,16 +199,17 @@ def make_predictions_from_video_7_frames(video_path, model_dir) -> list[str]:
 #     # model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
 # )
 
-res = make_predictions_from_video_7_frames(
-    # video_path='../slovo_full/testing_videos/вы_хорошо_работать.mov', 
-    # video_path='../slovo_full/testing_videos/я_дом_идти.mov', 
-    video_path='../slovo_full/testing_videos/я_тебе_еда_делать.mov', 
+if __name__ == "__main__":
+    res = make_predictions_from_video_7_frames(
+        # video_path='../slovo_full/testing_videos/вы_хорошо_работать.mov', 
+        # video_path='../slovo_full/testing_videos/я_дом_идти.mov', 
+        video_path='../slovo_full/testing_videos/я_тебе_еда_делать.mov', 
 
-    model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_100_videos_10_epochs_done_7_frames/s3d_1000_gestures_100_videos_7_epoch'
-    # model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
-)
+        model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_100_videos_10_epochs_done_7_frames/s3d_1000_gestures_100_videos_7_epoch'
+        # model_dir='Alex_Karachun/trained_models/s3d_1000_gestures_1000_videos_7_epochs_done/s3d_1000_gestures_1000_videos_5_epoch'
+    )
 
-print(res)
+    print(res)
 
 # print(clear_same_res(res))
 

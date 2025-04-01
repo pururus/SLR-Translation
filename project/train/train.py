@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import matplotlib.pyplot as plt
+import numpy as np
 
 class NNTrainer():
     '''
@@ -12,8 +14,8 @@ class NNTrainer():
         
         self.num_classes = num_classes
         self.batch_size = batch_size
-        self.learning_rate = 0.005
-        self.start_learning_rate = 0.005
+        self.learning_rate = 0.0005
+        self.start_learning_rate = 0.0005
         self.num_epochs = num_epochs
         
         self.device = torch.device("mps") if torch.backends.mps.is_available() else 'cpu'
@@ -22,6 +24,9 @@ class NNTrainer():
         '''
         trains model and saves to path
         '''
+        ac_l = []
+        los = []
+        
         self.learning_rate = self.start_learning_rate
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate, weight_decay = 0.005, momentum = 0.9)
@@ -42,6 +47,8 @@ class NNTrainer():
                 outputs = model(images)
                 # print(outputs.shape, labels.shape)
                 loss = criterion(outputs, labels)
+                
+                los.append(loss.item())
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -64,6 +71,7 @@ class NNTrainer():
                     del images, labels, outputs
                 print(total, correct)
                 accuracy = correct / total
+                ac_l.append(accuracy)
                 print('Accuracy of the network on the {} validation images: {} %'.format(total, 100 * accuracy))
         
         if epoch % 5 == 4:
@@ -71,3 +79,6 @@ class NNTrainer():
             optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate, weight_decay = 0.005, momentum = 0.9)
         
         torch.save(model.state_dict(), path)
+        
+        np.save("/Users/svatoslavpolonskiy/Documents/Deep_python/SLR-Translation/data/los.npy", np.array(los))
+        np.save("/Users/svatoslavpolonskiy/Documents/Deep_python/SLR-Translation/data/ac.npy", np.array(ac_l))
